@@ -1,5 +1,5 @@
 # ThesisFormatChecker 圖書館系統組論文格式審查器
-## 作者:中原大學資訊工程四年級乙班 賴卷狄  
+## 作者:賴卷狄, 中原大學資訊工程四年級乙班   
 原始網址:https://github.com/AutumnLai/ThesisFormatChecker  
 自動測試論文格式與目錄比對
 
