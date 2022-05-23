@@ -1,13 +1,10 @@
-# coding = utf-8 
-import PyPDF2,os,stat
+﻿# coding = utf-8 
+import PyPDF2,os
 import pandas as pd
 import pdfplumber
 import re
-from tika import parser
-import pyinputplus as pyip
-import shutil
 import tkinter as tk
-import time
+from tkinter import ttk,filedialog
 
 def romanToInt(inputRoman):
     sum = 0
@@ -26,7 +23,6 @@ def romanToInt(inputRoman):
 
 def readContext( pdfReader ):    
     contextWithoutCover=[]
-    checkV=True
     p0 = pdfReader.pages[0]
     text= p0.extract_text()
     contextWithoutCover.append(text)
@@ -52,7 +48,6 @@ def ContentCheck(contextWithoutC,yourContentPageS,yourContentPageE,yourContextSt
         report = pd.DataFrame()
     
         for checkItem in needToCheckSet :
-        
             tempCheckItem = checkItem
             checkItem = checkItem.replace('.',"")
             checkItem = checkItem.replace('…',"")
@@ -67,7 +62,7 @@ def ContentCheck(contextWithoutC,yourContentPageS,yourContentPageE,yourContextSt
                 else :
                     digitNumber = True
                     try:
-                        pageN = int(PageNumber.group()) -1 +yourContextStart-1
+                        pageN = int(PageNumber.group()) -1 + yourContextStart-1
                     except:
                         pageN=0
           #print("number is "+str(pageN))
@@ -95,7 +90,7 @@ def ContentCheck(contextWithoutC,yourContentPageS,yourContentPageE,yourContextSt
                         if titleCheckG != None:
                             correctNum = correctNum + 1
                         else :
-                            uncorrect = uncorrect +1 
+                            uncorrect = uncorrect + 1 
                             uncorrectList.append(titleContext)
                             uncorrectPageNum.append(pageN-yourContextStart+2)
                             print(titleContext)
@@ -112,45 +107,77 @@ def ContentCheck(contextWithoutC,yourContentPageS,yourContentPageE,yourContextSt
                     
         #找出索引頁碼，對應contextWithoutC的index
     
-    print("符合率"+str(correctNum/itemNum))
-    print("檢驗的項目數"+str(itemNum))
-    print("相符的項目數"+str(correctNum))
-    print("錯誤的項目數"+str(uncorrect))
-    report = pd.DataFrame((zip(uncorrectList, uncorrectPageNum)), columns = ['Ttitle', 'pageNum'])
 
+    result = "符合率:"+ str(correctNum/itemNum) + "\n"
+    result += "檢驗的項目數:" +str(itemNum) + "\n"
+    result += "相符的項目數:" +str(correctNum) + "\n"
+    result += "錯誤的項目數:" +str(uncorrect ) + "\n"
+
+    state.set(result)
+
+    report = pd.DataFrame((zip(uncorrectList, uncorrectPageNum)), columns = ['Title', 'pageNum'])
     report.to_csv(fileName+"report.csv",encoding = "utf_8_sig")
+
+    
+    open_button = tk.Button(
+    window,
+    text='查看結果',
+    command=open_file)
+    open_button.pack(pady=20)
+
     return checkBool
- 
 
-
-#列出所有PDF檔
-#pdfFiles = []
-#for filename in os.listdir('.'):
-#    if filename.endswith('.pdf'):    
-#        pdfFiles.append(filename)
-    
-
-#for filename in pdfFiles:  
-
-while(True):
-    studentID = input("請輸入學號")
-    
-    wkdir = os.get.getcwd()+"/"+studentID#改目錄要改這裡
-    filename = "Full-Text.pdf"#檔名改這
-    os.chdir(wkdir)
+def main():
     try:
+        wkdir = os.getcwd() + "/" + str(studentId.get("1.0","end").strip()) #改目錄要改這裡
+        filename = "Full-Text.pdf"#檔名改這
+        os.chdir(wkdir)
         pdfReader = pdfplumber.open(filename)
-  
+
         contextWithoutC = readContext(pdfReader)
-    
-        yourContentPageS = pyip.inputNum("目錄開始於第幾頁",min=1,max=len(pdfReader.pages)) 
-        yourContentPageE = pyip.inputNum("目錄結束於第幾頁",min=yourContentPageS,max=len(pdfReader.pages)) 
-        yourContextStart = pyip.inputNum("正文於第幾頁開始",min=yourContentPageE,max=len(pdfReader.pages)) 
-#yourContentPageS=6
-#yourContentPageE=10
-#yourContextStart=11
-        correctOrNot=ContentCheck(contextWithoutC,yourContentPageS,yourContentPageE,yourContextStart,studentID)
+
+        yourContentPageS = int(ContentStart.get("1.0","end").strip())
+        yourContentPageE = int(ContentEnd.get("1.0","end").strip())
+        yourContextStart = int(ThesisStart.get("1.0","end").strip())
+        
+        correctOrNot=ContentCheck(contextWithoutC,yourContentPageS,yourContentPageE,yourContextStart,str(studentId.get("1.0","end").strip()))
         print(correctOrNot)
     except:
         print("something Error")
+
+def open_file():
+    os.system("start EXCEL.EXE " + str(studentId.get("1.0","end").strip()) +"report.csv")
+
+if __name__ == '__main__':
+    window = tk.Tk()
+    window.title('論文檢查工具')
+    window.geometry('300x500')
+    window.resizable(0 , 0)
+    studentIdLable = tk.Label(window, text='學號:')
+    studentId = tk.Text(window, height=1)
+    studentIdLable.pack()
+    studentId.pack()
+    ContentStartLable = tk.Label(window, text='目錄開始頁數:')
+    ContentStart = tk.Text(window, height=1)
+    ContentStartLable.pack()
+    ContentStart.pack()
+    ContentEndLable = tk.Label(window, text='目錄結束頁數:')
+    ContentEnd = tk.Text(window, height=1)
+    ContentEndLable.pack()
+    ContentEnd.pack()
+    ThesisStartLable = tk.Label(window, text='正文開始頁數:')
+    ThesisStart = tk.Text(window, height=1)
+    ThesisStartLable.pack()
+    ThesisStart.pack()
+
+    btn_start = tk.Button(window , text="開始檢查" , height=3 , width=15 , font=20 ,command=main)
+    btn_start.pack(pady=20)
+    state = tk.StringVar()
+    state.set('')
+
+    stateBar = tk.Label(window, textvariable=state , anchor='w' , font=('Arial', 12))
+    stateBar.pack(pady=5)
+
+    window.mainloop()
+    
     
