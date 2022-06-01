@@ -1,10 +1,9 @@
 ﻿# coding = utf-8 
-import PyPDF2,os
+import os
 import pandas as pd
 import pdfplumber
 import re
 import tkinter as tk
-from tkinter import ttk,filedialog
 
 def romanToInt(inputRoman):
     sum = 0
@@ -30,7 +29,7 @@ def readContext( pdfReader ):
         pN = pdfReader.pages[i]
         text= pN.extract_text()
         contextWithoutCover.append(text)
-        
+    pdfReader.close()
     return contextWithoutCover
     
 def ContentCheck(contextWithoutC,yourContentPageS,yourContentPageE,yourContextStart,fileName):
@@ -118,12 +117,14 @@ def ContentCheck(contextWithoutC,yourContentPageS,yourContentPageE,yourContextSt
     report = pd.DataFrame((zip(uncorrectList, uncorrectPageNum)), columns = ['Title', 'pageNum'])
     report.to_csv(fileName+"report.csv",encoding = "utf_8_sig")
 
-    
     open_button = tk.Button(
     window,
     text='查看結果',
     command=open_file)
     open_button.pack(pady=20)
+
+    btn_refresh = tk.Button(window , text="refresh" ,command=refresh)
+    btn_refresh.pack(pady=20)
 
     return checkBool
 
@@ -142,8 +143,16 @@ def main():
         
         correctOrNot=ContentCheck(contextWithoutC,yourContentPageS,yourContentPageE,yourContextStart,str(studentId.get("1.0","end").strip()))
         print(correctOrNot)
+        pdfReader.close()
     except:
         print("something Error")
+
+def refresh():
+    studentId.delete("1.0", "end")
+    ContentStart.delete("1.0", "end")
+    ContentEnd.delete("1.0", "end")
+    ThesisStart.delete("1.0", "end")
+    os.chdir('../')
 
 def open_file():
     os.system("start EXCEL.EXE " + str(studentId.get("1.0","end").strip()) +"report.csv")
@@ -179,5 +188,4 @@ if __name__ == '__main__':
     stateBar.pack(pady=5)
 
     window.mainloop()
-    
     
