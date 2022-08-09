@@ -4,6 +4,9 @@ import pandas as pd
 import pdfplumber
 import re
 import tkinter as tk
+from tkinter import messagebox
+
+startPath = os.getcwd()
 
 def romanToInt(inputRoman):
     sum = 0
@@ -123,10 +126,25 @@ def ContentCheck(contextWithoutC,yourContentPageS,yourContentPageE,yourContextSt
     command=open_file)
     open_button.pack(pady=20)
 
-    btn_refresh = tk.Button(window , text="refresh" ,command=refresh)
     btn_refresh.pack(pady=20)
 
     return checkBool
+
+def createFolder():
+    folderpath = os.getcwd() + "/" + str(studentId.get("1.0","end").strip())
+    if not os.path.exists(folderpath):
+        os.makedirs(folderpath)
+    else:
+       messagebox.showinfo('Exist', '該學生資料夾已存在')
+    os.system(f'start {os.path.realpath(folderpath)}')
+
+def openThesis():
+    pdfpath = os.getcwd() + "/" + str(studentId.get("1.0","end").strip()) + "/Full-Text.pdf"
+    if not os.path.exists(pdfpath):
+        messagebox.showinfo('Error', '該學生檔案不存在')
+    else:
+        os.system(pdfpath)
+
 
 def main():
     try:
@@ -140,6 +158,7 @@ def main():
         yourContentPageS = int(ContentStart.get("1.0","end").strip())
         yourContentPageE = int(ContentEnd.get("1.0","end").strip())
         yourContextStart = int(ThesisStart.get("1.0","end").strip())
+        btn_refresh["state"] = "normal"
         
         correctOrNot=ContentCheck(contextWithoutC,yourContentPageS,yourContentPageE,yourContextStart,str(studentId.get("1.0","end").strip()))
         print(correctOrNot)
@@ -152,7 +171,14 @@ def refresh():
     ContentStart.delete("1.0", "end")
     ContentEnd.delete("1.0", "end")
     ThesisStart.delete("1.0", "end")
-    os.chdir('../')
+    
+    os.chdir(startPath)
+    if(os.getcwd() == startPath):
+        btn_refresh["state"] = "disabled"
+    else:
+        btn_refresh["state"] = "normal"
+        
+
 
 def open_file():
     os.system("start EXCEL.EXE " + str(studentId.get("1.0","end").strip()) +"report.csv")
@@ -160,9 +186,13 @@ def open_file():
 if __name__ == '__main__':
     window = tk.Tk()
     window.title('論文檢查工具')
-    window.geometry('300x500')
+    window.geometry('300x650')
     window.resizable(0 , 0)
     studentIdLable = tk.Label(window, text='學號:')
+    createFolderBtn = tk.Button(window , text="建立學生資料夾" , height=1 , width=20 , font=20 ,command=createFolder)
+    createFolderBtn.pack(pady=5)
+    openPdfBtn = tk.Button(window , text="開啟論文檔案" , height=1 , width=20 , font=20 ,command=openThesis)
+    openPdfBtn.pack(pady=5)
     studentId = tk.Text(window, height=1)
     studentIdLable.pack()
     studentId.pack()
@@ -179,8 +209,11 @@ if __name__ == '__main__':
     ThesisStartLable.pack()
     ThesisStart.pack()
 
+    btn_refresh = tk.Button(window , height=1, width=15 ,text="refresh" ,command=refresh)
+
     btn_start = tk.Button(window , text="開始檢查" , height=3 , width=15 , font=20 ,command=main)
     btn_start.pack(pady=20)
+    
     state = tk.StringVar()
     state.set('')
 
@@ -188,4 +221,3 @@ if __name__ == '__main__':
     stateBar.pack(pady=5)
 
     window.mainloop()
-    
